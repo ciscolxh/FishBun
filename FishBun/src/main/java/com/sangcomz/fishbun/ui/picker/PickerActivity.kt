@@ -1,5 +1,6 @@
 package com.sangcomz.fishbun.ui.picker
 
+import android.Manifest.permission.CAMERA
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -13,7 +14,11 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.Toast
 import androidx.appcompat.widget.Toolbar
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.core.content.PermissionChecker.PERMISSION_DENIED
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
@@ -27,6 +32,8 @@ import com.sangcomz.fishbun.datasource.FishBunDataSourceImpl
 import com.sangcomz.fishbun.datasource.ImageDataSourceImpl
 import com.sangcomz.fishbun.datasource.PickerIntentDataSourceImpl
 import com.sangcomz.fishbun.permission.PermissionCheck
+import com.sangcomz.fishbun.ui.MsgDialog
+import com.sangcomz.fishbun.ui.MsgDialog.OnClick
 import com.sangcomz.fishbun.ui.detail.ui.DetailImageActivity.Companion.getDetailImageActivity
 import com.sangcomz.fishbun.ui.picker.listener.OnPickerActionListener
 import com.sangcomz.fishbun.ui.picker.model.PickerListItem
@@ -39,16 +46,16 @@ import java.io.File
 
 
 class PickerActivity : BaseActivity(),
-    PickerContract.View, OnPickerActionListener {
+        PickerContract.View, OnPickerActionListener {
     private val pickerPresenter: PickerContract.Presenter by lazy {
         PickerPresenter(
-            this, PickerRepositoryImpl(
+                this, PickerRepositoryImpl(
                 ImageDataSourceImpl(this.contentResolver),
                 FishBunDataSourceImpl(Fishton),
                 PickerIntentDataSourceImpl(intent),
                 CameraDataSourceImpl(this)
-            ),
-            MainUiHandler()
+        ),
+                MainUiHandler()
         )
     }
 
@@ -60,8 +67,8 @@ class PickerActivity : BaseActivity(),
         try {
             outState.putString(SAVE_INSTANCE_SAVED_IMAGE, cameraUtil.savedPath)
             outState.putParcelableArrayList(
-                SAVE_INSTANCE_NEW_IMAGES,
-                ArrayList(pickerPresenter.getAddedImagePathList())
+                    SAVE_INSTANCE_NEW_IMAGES,
+                    ArrayList(pickerPresenter.getAddedImagePathList())
             )
         } catch (e: Exception) {
             Log.d(TAG, e.toString())
@@ -104,9 +111,9 @@ class PickerActivity : BaseActivity(),
     }
 
     override fun onActivityResult(
-        requestCode: Int,
-        resultCode: Int,
-        data: Intent?
+            requestCode: Int,
+            resultCode: Int,
+            data: Intent?
     ) {
         super.onActivityResult(requestCode, resultCode, data)
 
@@ -143,8 +150,8 @@ class PickerActivity : BaseActivity(),
     }
 
     override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>, grantResults: IntArray
+            requestCode: Int,
+            permissions: Array<String>, grantResults: IntArray
     ) {
         when (requestCode) {
             PERMISSION_STORAGE -> {
@@ -184,10 +191,10 @@ class PickerActivity : BaseActivity(),
                 if (it.colorTextMenu != Int.MAX_VALUE) {
                     val spanString = SpannableString(it.strDoneMenu)
                     spanString.setSpan(
-                        ForegroundColorSpan(it.colorTextMenu),
-                        0,
-                        spanString.length,
-                        0
+                            ForegroundColorSpan(it.colorTextMenu),
+                            0,
+                            spanString.length,
+                            0
                     ) //fi
                     menuDoneItem.title = spanString
                 } else {
@@ -203,10 +210,10 @@ class PickerActivity : BaseActivity(),
                     if (it.colorTextMenu != Int.MAX_VALUE) {
                         val spanString = SpannableString(it.strAllDoneMenu)
                         spanString.setSpan(
-                            ForegroundColorSpan(it.colorTextMenu),
-                            0,
-                            spanString.length,
-                            0
+                                ForegroundColorSpan(it.colorTextMenu),
+                                0,
+                                spanString.length,
+                                0
                         ) //fi
                         menuAllDoneItem.title = spanString
                     } else {
@@ -240,9 +247,9 @@ class PickerActivity : BaseActivity(),
     }
 
     override fun setToolbarTitle(
-        pickerViewData: PickerViewData,
-        selectedCount: Int,
-        albumName: String
+            pickerViewData: PickerViewData,
+            selectedCount: Int,
+            albumName: String
     ) {
         supportActionBar?.run {
             title = if (pickerViewData.maxCount == 1 || !pickerViewData.isShowCount)
@@ -268,11 +275,11 @@ class PickerActivity : BaseActivity(),
         if (bar != null) {
             bar.setDisplayHomeAsUpEnabled(true)
             if (pickerViewData.drawableHomeAsUpIndicator != null) supportActionBar?.setHomeAsUpIndicator(
-                pickerViewData.drawableHomeAsUpIndicator
+                    pickerViewData.drawableHomeAsUpIndicator
             )
         }
         if (pickerViewData.isStatusBarLight
-            && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
         ) {
             toolbar.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
         }
@@ -281,7 +288,7 @@ class PickerActivity : BaseActivity(),
     override fun initRecyclerView(pickerViewData: PickerViewData) {
         recyclerView = findViewById(R.id.recycler_picker_list)
         layoutManager =
-            GridLayoutManager(this, pickerViewData.photoSpanCount, RecyclerView.VERTICAL, false)
+                GridLayoutManager(this, pickerViewData.photoSpanCount, RecyclerView.VERTICAL, false)
         recyclerView?.layoutManager = layoutManager
     }
 
@@ -299,15 +306,16 @@ class PickerActivity : BaseActivity(),
     }
 
     override fun showImageList(
-        imageList: List<PickerListItem>,
-        adapter: ImageAdapter,
-        hasCameraInPickerPage: Boolean
+            imageList: List<PickerListItem>,
+            adapter: ImageAdapter,
+            hasCameraInPickerPage: Boolean
     ) {
         setImageList(imageList, adapter, hasCameraInPickerPage)
     }
 
     override fun takePicture() {
         if (checkCameraPermission()) {
+            // 获取权限成功才能去拍照
             pickerPresenter.takePicture()
         }
     }
@@ -344,9 +352,9 @@ class PickerActivity : BaseActivity(),
         recyclerView?.let {
             it.post {
                 Snackbar.make(
-                    it,
-                    getString(R.string.msg_minimum_image, currentSelectedCount),
-                    Snackbar.LENGTH_SHORT
+                        it,
+                        getString(R.string.msg_minimum_image, currentSelectedCount),
+                        Snackbar.LENGTH_SHORT
                 ).show()
             }
         }
@@ -369,10 +377,48 @@ class PickerActivity : BaseActivity(),
 
     private fun checkCameraPermission(): Boolean {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (permissionCheck.checkCameraPermission(PERMISSION_CAMERA)) return true
+            val code = ContextCompat.checkSelfPermission(this, CAMERA)
+            return if (code == PERMISSION_DENIED) {
+                // 不再提醒
+                if (!ActivityCompat.shouldShowRequestPermissionRationale(this, CAMERA)) {
+                    val dialog = MsgDialog(this, "无权限使用此权限", "请前往手机[设置] - [隐私] - 中开启此应用权限", true, "知道了", R.layout.dialog_left_msg)
+                    dialog.setClick(object : MsgDialog.OnClick {
+                        override fun noClick() {
+
+                        }
+                        override fun yesClick() {
+
+                        }
+                    })
+                    dialog.showDlg()
+                }
+                // 未授权
+                else {
+                    showDialog()
+                }
+                false
+            } else {
+                true
+            }
         } else return true
-        return false
     }
+
+    private fun showDialog() {
+        val dialog = MsgDialog(this, "权限说明", "允许访问手机相机，用于拍照。", false, "确定", R.layout.dialog_left_msg)
+        dialog.setClick(object : MsgDialog.OnClick {
+            override fun noClick() {
+
+            }
+
+            override fun yesClick() {
+                if (permissionCheck.checkCameraPermission(PERMISSION_CAMERA)) {
+                    pickerPresenter.takePicture()
+                }
+            }
+        })
+        dialog.showDlg()
+    }
+
 
     override fun finishActivity() {
         val i = Intent()
@@ -391,9 +437,9 @@ class PickerActivity : BaseActivity(),
     }
 
     private fun setImageList(
-        pickerList: List<PickerListItem>,
-        imageAdapter: ImageAdapter,
-        hasCameraInPickerPage: Boolean
+            pickerList: List<PickerListItem>,
+            imageAdapter: ImageAdapter,
+            hasCameraInPickerPage: Boolean
     ) {
         if (adapter == null) {
             adapter = PickerAdapter(imageAdapter, this, hasCameraInPickerPage)
@@ -406,10 +452,10 @@ class PickerActivity : BaseActivity(),
     companion object {
         private const val TAG = "PickerActivity"
         fun getPickerActivityIntent(
-            context: Context?,
-            albumId: Long?,
-            albumName: String?,
-            albumPosition: Int
+                context: Context?,
+                albumId: Long?,
+                albumName: String?,
+                albumPosition: Int
         ): Intent {
             val intent = Intent(context, PickerActivity::class.java)
             intent.putExtra(PickerIntentDataSourceImpl.ARG_ALBUM_ID, albumId)

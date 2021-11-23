@@ -9,4 +9,12 @@
     <style name="DetailViewTheme" parent="FishBunTheme">
         <item name="colorControlHighlight">@android:color/white</item>
     </style>
+
+    <!-- 圆角透明无标题对话框 -->
+    <style name="myDialogStyle_transparent" parent="android:style/Theme.Holo.Light.Dialog">
+        <item name="android:windowBackground">@color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+
+    <color name="transparent">#00000000</color>
 </resources>

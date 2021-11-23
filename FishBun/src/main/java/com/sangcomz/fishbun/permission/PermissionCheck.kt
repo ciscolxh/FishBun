@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.sangcomz.fishbun.R
+import com.sangcomz.fishbun.ui.MsgDialog
 
 /**
  * Created by sangc on 2015-10-12.
@@ -27,10 +28,7 @@ class PermissionCheck(private val context: Context) {
         return if (needRequestPermissionList.isEmpty()) {
             true
         } else {
-            if (ActivityCompat.shouldShowRequestPermissionRationale(
-                    context,
-                    needRequestPermissionList.first()
-                )
+            if (ActivityCompat.shouldShowRequestPermissionRationale(context,needRequestPermissionList.first())
             ) {
                 ActivityCompat.requestPermissions(context, needRequestPermissionList, requestCode)
             } else {
@@ -70,7 +68,16 @@ class PermissionCheck(private val context: Context) {
     }
 
     fun showPermissionDialog() {
-        Toast.makeText(context, R.string.msg_permission, Toast.LENGTH_SHORT).show()
+        val dialog = MsgDialog(context, "无权限使用此权限", "请前往手机[设置] - [隐私] - 当前APP中开启此应用权限", true, "知道了", R.layout.dialog_left_msg)
+        dialog.setClick(object : MsgDialog.OnClick {
+            override fun noClick() {
+
+            }
+            override fun yesClick() {
+
+            }
+        })
+        dialog.showDlg()
     }
 
 }
