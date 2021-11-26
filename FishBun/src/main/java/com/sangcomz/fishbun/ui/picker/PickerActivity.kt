@@ -14,7 +14,6 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.Toast
 import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -33,7 +32,6 @@ import com.sangcomz.fishbun.datasource.ImageDataSourceImpl
 import com.sangcomz.fishbun.datasource.PickerIntentDataSourceImpl
 import com.sangcomz.fishbun.permission.PermissionCheck
 import com.sangcomz.fishbun.ui.MsgDialog
-import com.sangcomz.fishbun.ui.MsgDialog.OnClick
 import com.sangcomz.fishbun.ui.detail.ui.DetailImageActivity.Companion.getDetailImageActivity
 import com.sangcomz.fishbun.ui.picker.listener.OnPickerActionListener
 import com.sangcomz.fishbun.ui.picker.model.PickerListItem
@@ -316,6 +314,7 @@ class PickerActivity : BaseActivity(),
     override fun takePicture() {
         if (checkCameraPermission()) {
             // 获取权限成功才能去拍照
+            Log.e("测试","3")
             pickerPresenter.takePicture()
         }
     }
@@ -375,9 +374,29 @@ class PickerActivity : BaseActivity(),
         return false
     }
 
+    // 判断是否请求过相机权限
+    private fun getCameraPermission(): Boolean {
+        val genPrefs = this.getSharedPreferences("PICKER", MODE_PRIVATE)
+        return genPrefs.getBoolean(CAMERA, false)
+    }
+
+    fun setRequestedPermission() {
+        val genPrefs = this.getSharedPreferences("PICKER", MODE_PRIVATE)
+        val editor = genPrefs.edit()
+        editor.putBoolean(CAMERA, true)
+        editor.apply()
+    }
+
     private fun checkCameraPermission(): Boolean {
+        // 如果权限大于23
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // 如果是第一次请求直接请求就行
+            if(!getCameraPermission()){
+                showDialog()
+                return false
+            }
             val code = ContextCompat.checkSelfPermission(this, CAMERA)
+            // 如果被拒绝了
             return if (code == PERMISSION_DENIED) {
                 // 不再提醒
                 if (!ActivityCompat.shouldShowRequestPermissionRationale(this, CAMERA)) {
@@ -412,6 +431,7 @@ class PickerActivity : BaseActivity(),
 
             override fun yesClick() {
                 if (permissionCheck.checkCameraPermission(PERMISSION_CAMERA)) {
+                    setRequestedPermission()
                     pickerPresenter.takePicture()
                 }
             }
