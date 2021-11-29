@@ -314,7 +314,6 @@ class PickerActivity : BaseActivity(),
     override fun takePicture() {
         if (checkCameraPermission()) {
             // 获取权限成功才能去拍照
-            Log.e("测试","3")
             pickerPresenter.takePicture()
         }
     }
@@ -391,7 +390,7 @@ class PickerActivity : BaseActivity(),
         // 如果权限大于23
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             // 如果是第一次请求直接请求就行
-            if(!getCameraPermission()){
+            if (!getCameraPermission()) {
                 showDialog()
                 return false
             }
@@ -405,6 +404,7 @@ class PickerActivity : BaseActivity(),
                         override fun noClick() {
 
                         }
+
                         override fun yesClick() {
 
                         }
@@ -430,8 +430,8 @@ class PickerActivity : BaseActivity(),
             }
 
             override fun yesClick() {
+                setRequestedPermission()
                 if (permissionCheck.checkCameraPermission(PERMISSION_CAMERA)) {
-                    setRequestedPermission()
                     pickerPresenter.takePicture()
                 }
             }
